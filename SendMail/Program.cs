@@ -1,11 +1,29 @@
-﻿using SendMail.Handler;
+﻿using Newtonsoft.Json;
+using SendMail.Handler;
 using SendMail.Models;
 
+string fileContent = File.ReadAllText("config.json");
+
+MailSendModel? config = JsonConvert.DeserializeObject<MailSendModel>(fileContent);
+
+if (
+    config == null
+    || string.IsNullOrEmpty(config.ClientId)
+    || string.IsNullOrEmpty(config.ClientSecret)
+    || string.IsNullOrEmpty(config.TenantId)
+    || string.IsNullOrEmpty(config.FromUser)
+    || string.IsNullOrEmpty(config.ToUser)
+)
+{
+    Console.WriteLine("Configuration is missing or invalid.");
+    return;
+}
+
 GraphEmailService service = new(
-    tenantId: "your-tenant-id",
-    clientId: "your-client-id",
-    clientSecret: "your-client-secret",
-    fromUser: "name@domain.com" // must be licensed mailbox
+    tenantId: config.TenantId,
+    clientId: config.ClientId,
+    clientSecret: config.ClientSecret,
+    fromUser: config.FromUser // must be licensed mailbox
 );
 
 await service.SendEmailAsync(
@@ -13,20 +31,23 @@ await service.SendEmailAsync(
     {
         message = new
         {
-            subject = "Quarterly Update",
+            subject = "Mail Testing Using Graph QL Service.",
             body = new ItemBody(
                 "<p>Hello Team,<br/>Here is the <b>latest</b> update with attachment.</p>",
                 "HTML"
             ),
             importance = "High",
             sensitivity = "Confidential",
-            toRecipients = new List<Recipient> { new("alice@domain.com", "Alice") },
-            ccRecipients = new List<Recipient> { new("manager@domain.com", "Manager") },
+            toRecipients = new List<Recipient> { new(config.ToUser, "Testing User") },
+            ccRecipients = new List<Recipient> { new(config.CcUser, "Manager") },
             attachments = new List<FileAttachment>
             {
                 // AttachmentHelper.CreateFileAttachment("report.txt", "report.txt", "text/plain"),
             },
-            internetMessageHeaders = new[] { new { name = "X-Custom-Header", value = "MyValue" } },
+            internetMessageHeaders = new[]
+            {
+                new { name = "X-Custom-Header", value = "Developer Testing" },
+            },
         },
         saveToSentItems = true,
     }
