@@ -36,9 +36,12 @@ await service.SendEmailAsync(
                 "<p>Hello Team,<br/>Here is the <b>latest</b> update with attachment.</p>",
                 "HTML"
             ),
-            importance = "High",
-            sensitivity = "Confidential",
-            toRecipients = new List<Recipient> { new(config.ToUser, "Testing User") },
+            importance = "normal", // low, high, normal
+            toRecipients = new List<Recipient>
+            {
+                new(config.ToUser, "Testing User"),
+                new("second@gmail.com", "Testing User 2"),
+            },
             ccRecipients = new List<Recipient> { new(config.CcUser, "Manager") },
             attachments = new List<FileAttachment>
             {
